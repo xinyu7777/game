@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>剪刀石頭布 - 搞怪版</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ff6b6b;
+      font-size: 2rem;
+    }
+    .score-board {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      font-size: 1.5rem;
+    }
+    .score-board div {
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+    #player-score {
+      background-color: #a3d2ca;
+    }
+    #computer-score {
+      background-color: #ffd3b6;
+    }
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 30px 0;
+    }
+    .choice {
+      cursor: pointer;
+      background-color: white;
+      border: 3px solid #ddd;
+      border-radius: 50%;
+      padding: 20px;
+      font-size: 2rem;
+      transition: all 0.3s ease;
+    }
+    .choice:hover {
+      transform: scale(1.2);
+      border-color: #ff6b6b;
+    }
+    #result {
+      font-size: 1.5rem;
+      margin: 20px 0;
+      min-height: 60px;
+    }
+    #message {
+      font-size: 1.2rem;
+      color: #666;
+      font-style: italic;
+    }
+    .emoji {
+      font-size: 3rem;
+      margin: 10px;
+    }
+    .winner {
+      border: 3px solid #4caf50;
+      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+    .loser {
+      border: 3px solid #f44336;
+      opacity: 0.7;
+    }
+    .draw {
+      border: 3px solid #ffeb3b;
+    }
+    .game-over {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff6b6b;
+      margin: 20px 0;
+    }
+    .reset-btn {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .reset-btn:hover {
+      background-color: #ff5252;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>搞怪剪刀石頭布</h1>
+    <p>先得30分者獲勝！</p>
+    
+    <div class="score-board">
+      <div id="player-score">你: 0</div>
+      <div id="computer-score">電腦: 0</div>
+    </div>
+    
+    <div id="result">準備好來一場對決了嗎？</div>
+    <div id="message">選擇你的武器！</div>
+    
+    <div class="choices">
+      <div class="choice" id="rock">✊</div>
+      <div class="choice" id="paper">✋</div>
+      <div class="choice" id="scissors">✌️</div>
+    </div>
+    
+    <div class="emoji" id="player-choice"></div>
+    <div class="emoji" id="computer-choice"></div>
+    
+    <div id="game-over-message" class="game-over hidden"></div>
+    <button id="reset-button" class="reset-btn hidden">再來一局</button>
+  </div>
+
+  <script>
+    const choices = ["rock", "paper", "scissors"];
+    const emojis = {
+      rock: "✊",
+      paper: "✋",
+      scissors: "✌️"
+    };
+    const funnyMessages = {
+      win: [
+        "哇！你太厲害了！",
+        "電腦覺得很受傷...",
+        "這把贏得漂亮！",
+        "電腦想關機了...",
+        "你是剪刀石頭布大師嗎？"
+      ],
+      lose: [
+        "哎呀，電腦偷看你出什麼了？",
+        "下次一定會贏的！",
+        "電腦在偷笑呢...",
+        "這把只是讓電腦一下而已...",
+        "電腦：嘿嘿嘿～"
+      ],
+      draw: [
+        "心有靈犀啊！",
+        "你們想到一塊兒去了！",
+        "這把平局，再來一次！",
+        "難分勝負！",
+        "平局也是種默契～"
+      ]
+    };
+    
+    let playerScore = 0;
+    let computerScore = 0;
+    const maxScore = 30;
+    
+    document.querySelectorAll('.choice').forEach(choice => {
+      choice.addEventListener('click', function() {
+        if (playerScore >= maxScore || computerScore >= maxScore) return;
+        
+        const playerChoice = this.id;
+        const computerChoice = computerPlay();
+        playRound(playerChoice, computerChoice);
+        
+        if (playerScore >= maxScore || computerScore >= maxScore) {
+          endGame();
+        }
+      });
+    });
+    
+    document.getElementById('reset-button').addEventListener('click', resetGame);
+    
+    function computerPlay() {
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+    
+    function playRound(playerSelection, computerSelection) {
+      // Reset previous styles
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('winner', 'loser', 'draw');
+      });
+      
+      // Display choices
+      document.getElementById('player-choice').textContent = emojis[playerSelection];
+      document.getElementById('computer-choice').textContent = emojis[computerSelection];
+      
+      const playerChoiceElement = document.getElementById(playerSelection);
+      const computerChoiceElements = document.querySelectorAll('.choice');
+      
+      let resultMessage = "";
+      let funnyMessageType = "";
+      
+      if (playerSelection === computerSelection) {
+        playerChoiceElement.classList.add('draw');
+        computerChoiceElements.forEach(el => {
+          if (el.id === computerSelection) el.classList.add('draw');
+        });
+        resultMessage = "平局！";
+        funnyMessageType = "draw";
+      } else if (
+        (playerSelection === "rock" && computerSelection === "scissors") ||
+        (playerSelection === "paper" && computerSelection === "rock") ||
+        (playerSelection === "scissors" && computerSelection === "paper")
+      ) {
+        playerScore++;
+        playerChoiceElement.classList.add('winner');
+        computerChoiceElements.forEach(el => {
+          if (el.id === computerSelection) el.classList.add('loser');
+        });
+        resultMessage = "你贏了！";
+        funnyMessageType = "win";
+      } else {
+        computerScore++;
+        playerChoiceElement.classList.add('loser');
+        computerChoiceElements.forEach(el => {
+          if (el.id === computerSelection) el.classList.add('winner');
+        });
+        resultMessage = "電腦贏了！";
+        funnyMessageType = "lose";
+      }
+      
+      document.getElementById('player-score').textContent = `你: ${playerScore}`;
+      document.getElementById('computer-score').textContent = `電腦: ${computerScore}`;
+      document.getElementById('result').textContent = resultMessage;
+      
+      const randomMessage = funnyMessages[funnyMessageType][Math.floor(Math.random() * funnyMessages[funnyMessageType].length)];
+      document.getElementById('message').textContent = randomMessage;
+    }
+    
+    function endGame() {
+      const gameOverMessage = document.getElementById('game-over-message');
+      gameOverMessage.classList.remove('hidden');
+      document.getElementById('reset-button').classList.remove('hidden');
+      
+      if (playerScore >= maxScore) {
+        gameOverMessage.textContent = "恭喜你獲勝！🏆";
+        gameOverMessage.style.color = "#4caf50";
+      } else {
+        gameOverMessage.textContent = "電腦獲勝了！😭";
+        gameOverMessage.style.color = "#f44336";
+      }
+    }
+    
+    function resetGame() {
+      playerScore = 0;
+      computerScore = 0;
+      document.getElementById('player-score').textContent = "你: 0";
+      document.getElementById('computer-score').textContent = "電腦: 0";
+      document.getElementById('result').textContent = "準備好來一場對決了嗎？";
+      document.getElementById('message').textContent = "選擇你的武器！";
+      document.getElementById('player-choice').textContent = "";
+      document.getElementById('computer-choice').textContent = "";
+      document.getElementById('game-over-message').classList.add('hidden');
+      document.getElementById('reset-button').classList.add('hidden');
+      
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('winner', 'loser', 'draw');
+      });
+    }
+  </script>
+</body>
+</html>
